@@ -19337,3 +19337,82 @@ window.PORTFOLIO_DATA = {
   ],
   "imagePolicy": "Use actual maps and figures from uploaded documents where available. Other images are illustrative/contextual and credited individually via imageCredit and imageSource."
 };
+
+
+
+
+/*
+ * SAME-FOLDER ASSET PATH CORRECTION
+ *
+ * All HTML, CSS, JavaScript, images, PDFs and DOCX files
+ * are stored in the same folder.
+ *
+ * Keeps external URLs and embedded data unchanged.
+ */
+
+(() => {
+  const data = window.PORTFOLIO_DATA;
+
+  if (!data || !Array.isArray(data.works)) return;
+
+  function fixPath(path) {
+    if (typeof path !== "string" || !path) {
+      return path;
+    }
+
+    if (/^(https?:|data:|blob:|mailto:|tel:|#|\/\/)/i.test(path)) {
+      return path;
+    }
+
+    const normalized = path.replace(/\\/g, "/");
+    const filename = normalized.split("/").pop();
+
+    return filename ? "./" + filename : path;
+  }
+
+  data.works.forEach(work => {
+
+    // Writing-card images
+    if (work.image) {
+      work.image = fixPath(work.image);
+    }
+
+    // Downloadable documents
+    if (work.download) {
+      work.download = fixPath(work.download);
+    }
+
+    // Full-text PDFs
+    if (work.fullTextPdf) {
+      work.fullTextPdf = fixPath(work.fullTextPdf);
+    }
+
+    // Additional research documents
+    if (work.additionalDocument) {
+      work.additionalDocument = fixPath(work.additionalDocument);
+    }
+
+    // Featured maps and figures
+    if (work.featuredFigure?.src) {
+      work.featuredFigure.src =
+        fixPath(work.featuredFigure.src);
+    }
+
+    // Original document page images
+    if (Array.isArray(work.pageImages)) {
+      work.pageImages = work.pageImages.map(fixPath);
+    }
+
+    // Figures embedded within full-text research
+    if (Array.isArray(work.contentBlocks)) {
+      work.contentBlocks.forEach(block => {
+        if (block.type === "figure" && block.src) {
+          block.src = fixPath(block.src);
+        }
+      });
+    }
+
+  });
+
+})();
+
